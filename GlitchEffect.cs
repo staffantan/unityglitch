@@ -10,11 +10,15 @@ to make commercial use of the work
 */
 
 using UnityEngine;
-using UnityEditor;
 using UnityStandardAssets.ImageEffects;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
+#if UNITY_EDITOR
 [ExecuteInEditMode]
-[AddComponentMenu("Image Effects/GlitchEffect")]
+[AddComponentMenu ("Image Effects/GlitchEffect")]
+#endif
 public class GlitchEffect : ImageEffectBase {
 	public Texture2D displacementMap;
 	float glitchup, glitchdown, flicker,
