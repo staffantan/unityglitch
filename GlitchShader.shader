@@ -13,6 +13,7 @@ Properties {
 	_MainTex ("Base (RGB)", 2D) = "white" {}
 	_DispTex ("Base (RGB)", 2D) = "bump" {}
 	_Intensity ("Glitch Intensity", Range(0.1, 1.0)) = 1
+	_ColorIntensity("Color Bleed Intensity", Range(0.1, 1.0)) = 0.2
 }
 
 SubShader {
@@ -30,7 +31,10 @@ SubShader {
 		uniform sampler2D _MainTex;
 		uniform sampler2D _DispTex;
 		float _Intensity;
-		
+		float _ColorIntensity;
+
+		fixed4 direction;
+
 		float filterRadius;
 		float flip_up, flip_down;
 		float displace;
@@ -52,29 +56,21 @@ SubShader {
 		
 		half4 frag (v2f i) : COLOR
 		{
-	
 			half4 normal = tex2D (_DispTex, i.uv.xy * scale);
 			
-			if(i.uv.y < flip_up)
-				i.uv.y = 1 - (i.uv.y + flip_up);
-			
-			if(i.uv.y > flip_down)
-				i.uv.y = 1 - (i.uv.y - flip_down);
-			
+			i.uv.y -= (1 - (i.uv.y + flip_up)) * step(i.uv.y, flip_up) + (1 - (i.uv.y - flip_down)) * step(flip_down, i.uv.y);
+
 			i.uv.xy += (normal.xy - 0.5) * displace * _Intensity;
 			
-			
 			half4 color = tex2D(_MainTex,  i.uv.xy);
-			half4 redcolor = tex2D(_MainTex,  i.uv.xy + 0.01 * filterRadius * _Intensity);	
-			half4 greencolor = tex2D(_MainTex,  i.uv.xy + 0.01 * filterRadius * _Intensity);
-			
-			if(filterRadius > 0){
-				color.r = redcolor.r * 1.2;
-				color.b = greencolor.b * 1.2;
-			}else{
-				color.g = redcolor.b * 1.2;
-				color.r = greencolor.g * 1.2;
-			}
+			half4 redcolor = tex2D(_MainTex, i.uv.xy + direction.xy * 0.01 * filterRadius * _ColorIntensity);
+			half4 greencolor = tex2D(_MainTex,  i.uv.xy - direction.xy * 0.01 * filterRadius * _ColorIntensity);
+
+			color += fixed4(redcolor.r, redcolor.b, redcolor.g, 1) *  step(filterRadius, -0.001);
+			color *= 1 - 0.5 * step(filterRadius, -0.001);
+
+			color += fixed4(greencolor.g, greencolor.b, greencolor.r, 1) *  step(0.001, filterRadius);
+			color *= 1 - 0.5 * step(0.001, filterRadius);
 			
 			return color;
 		}

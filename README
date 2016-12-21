@@ -7,9 +7,8 @@ to copy, distribute, display, and perform the work
 to make derivative works
 to make commercial use of the work
 
-
-This post-processing effect requires Unity Pro
-
 USAGE:
 Add GlitchEffect script to camera.
-Change intensity value to control glitchintensity
+Add GlitchShader to GlitchEffect.
+Add a random vector texture to GlitchEffect.
+Change intensity values to control glitch.
